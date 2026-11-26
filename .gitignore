@@ -1,0 +1,40 @@
+# ===== Private data: never commit =====
+# Login credentials (contains fenbi sid cookie)
+data/session.json
+fenbi_cookies.json
+fenbi_cookie_header.txt
+fb_cookie_raw.db
+
+# Personal practice records (per-question correctness, time, global accuracy)
+data/reports.jsonl
+data/solution.jsonl
+data/source.jsonl
+data/meta.json
+data/rows.jsonl
+data/fetch_status.jsonl
+data/fetch_summary.json
+data/unclassified.jsonl
+data/mock_history_all.json
+data/qr.png
+
+# Local backups
+data/*.bak
+data/*.bak_*
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ===== Exported artifacts =====
+*.xlsx
+*.png
+
+# ===== Editor / OS =====
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
