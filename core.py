@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """ 粉笔抓取核心：请求、历史分页、三类筛选、逐场明细、断点续传、榜单计算
    v2.0 审计修复版：统一数据层级、请求状态化、失败清单、未分类明示、
    题量权重（固定：2027行政执法模考各题型出现题数/总题数，设置页可改）、优先级得分、用时口径分离。 """
@@ -9,7 +9,6 @@ import requests
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE, 'data')
 API = 'https://tiku.fenbi.com'
-COMMON = 'kav=125&av=127&hav=125&app=web&apcid=0&deviceId=v1_3a2g6g39aiqq8_d51a&gav=2'
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36'
 TYPE_NAMES = {1:'单选题',2:'多选题',3:'不定项选择题',4:'填空题',5:'判断题',6:'阅读理解(5选7)',
               11:'论证/证明题',12:'主观题/作文',13:'计算题',14:'资料分析/阅读理解',15:'分析题',
@@ -284,8 +283,11 @@ class FenbiClient:
         return {'data': data}
 
     def fetch_source(self, request_key):
-        st, d = self.getj('/combine/static/solution?key=%s&routecs=xingce&type=1&%s'
-                          % (request_key, COMMON), retry=1)
+        # 注意：此接口不能带 gav/deviceId 参数。带上 gav 会触发服务端 DeviceSid 校验，
+        # 而 deviceId 是从浏览器 cookie 派生的，换个账号（无 device_id cookie）就校验失败，
+        # 服务端返回 HTTP 453 {"message":"无效DeviceSid"}。裸请求即可正常返回。
+        st, d = self.getj('/combine/static/solution?key=%s&routecs=xingce&type=1'
+                          % request_key, retry=1)
         if st == 'login_expired': raise LoginExpired('登录已失效，请重新登录')
         if st != 'ok' or not isinstance(d, dict): return []
         data = d.get('data') or d or {}
