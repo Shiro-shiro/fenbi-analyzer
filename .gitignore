@@ -17,6 +17,11 @@ data/unclassified.jsonl
 data/mock_history_all.json
 data/qr.png
 
+# Per-account cache directories (accounts/<userId>/...)
+data/accounts/
+data/_legacy_root/
+data/_legacy_lastrun/
+
 # Local backups
 data/*.bak
 data/*.bak_*
