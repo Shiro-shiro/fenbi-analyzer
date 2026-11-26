@@ -18,6 +18,7 @@ def _summary_sheet(wb, summary):
         ['题量权重口径', su.get('mock_weight_note', '未计算')],
         ['题量权重来源', '固定：2027行政执法类模考4份卷各二级分类平均出现题数/总题数130（设置页可改）'],
         ['完整模考卷份数', su.get('full_mock_papers', 0)],
+        ['登录账号', ('%s（ID %s）' % (su.get('account_name') or '未命名', su.get('account_id') or '-'))],
         ['抓取场次', su.get('total_sessions', 0)],
         ['入榜记录数', su.get('in_ranking', 0)],
         ['未分类记录数（单列未分类组）', su.get('unclassified', 0)],
