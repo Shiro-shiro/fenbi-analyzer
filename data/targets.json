@@ -1,0 +1,182 @@
+{
+  "图形推理": {
+    "target_acc": 80,
+    "target_time": 50,
+    "score": 0.8,
+    "source": "粉笔官网40-50秒/搜狐50秒"
+  },
+  "定义判断": {
+    "target_acc": 80,
+    "target_time": 55,
+    "score": 0.8,
+    "source": "粉笔官网50-60秒"
+  },
+  "类比推理": {
+    "target_acc": 80,
+    "target_time": 30,
+    "score": 0.8,
+    "source": "粉笔官网/搜狐30秒"
+  },
+  "逻辑判断": {
+    "target_acc": 80,
+    "target_time": 60,
+    "score": 0.8,
+    "source": "粉笔官网/搜狐60秒"
+  },
+  "逻辑填空": {
+    "target_acc": 80,
+    "target_time": 40,
+    "score": 0.8,
+    "source": "搜狐40秒/SaDuck40-60秒"
+  },
+  "片段阅读": {
+    "target_acc": 80,
+    "target_time": 70,
+    "score": 0.8,
+    "source": "搜狐70秒"
+  },
+  "语句表达": {
+    "target_acc": 75,
+    "target_time": 60,
+    "score": 0.8,
+    "source": "言语模块均摊推算"
+  },
+  "数学运算": {
+    "target_acc": 60,
+    "target_time": 90,
+    "score": 0.8,
+    "source": "搜狐90秒/建议挑做"
+  },
+  "文字资料": {
+    "target_acc": 85,
+    "target_time": 75,
+    "score": 1.0,
+    "source": "资料每篇5题6-7分钟均摊"
+  },
+  "统计表": {
+    "target_acc": 85,
+    "target_time": 75,
+    "score": 1.0,
+    "source": "资料每篇5题6-7分钟均摊"
+  },
+  "统计图": {
+    "target_acc": 85,
+    "target_time": 75,
+    "score": 1.0,
+    "source": "资料每篇5题6-7分钟均摊"
+  },
+  "综合资料": {
+    "target_acc": 85,
+    "target_time": 75,
+    "score": 1.0,
+    "source": "资料每篇5题6-7分钟均摊"
+  },
+  "简单计算": {
+    "target_acc": 85,
+    "target_time": 75,
+    "score": 1.0,
+    "source": "资料每篇5题6-7分钟均摊"
+  },
+  "基期与现期": {
+    "target_acc": 85,
+    "target_time": 75,
+    "score": 1.0,
+    "source": "资料每篇5题6-7分钟均摊"
+  },
+  "增长率": {
+    "target_acc": 85,
+    "target_time": 75,
+    "score": 1.0,
+    "source": "资料每篇5题6-7分钟均摊"
+  },
+  "增长量": {
+    "target_acc": 85,
+    "target_time": 75,
+    "score": 1.0,
+    "source": "资料每篇5题6-7分钟均摊"
+  },
+  "比重问题": {
+    "target_acc": 85,
+    "target_time": 75,
+    "score": 1.0,
+    "source": "资料每篇5题6-7分钟均摊"
+  },
+  "平均数问题": {
+    "target_acc": 85,
+    "target_time": 75,
+    "score": 1.0,
+    "source": "资料每篇5题6-7分钟均摊"
+  },
+  "倍数与比值相关": {
+    "target_acc": 85,
+    "target_time": 75,
+    "score": 1.0,
+    "source": "资料每篇5题6-7分钟均摊"
+  },
+  "综合分析": {
+    "target_acc": 85,
+    "target_time": 90,
+    "score": 1.0,
+    "source": "资料综合题较慢"
+  },
+  "马克思主义": {
+    "target_acc": 60,
+    "target_time": 30,
+    "score": 0.5,
+    "source": "常识政治35题15分钟"
+  },
+  "新思想": {
+    "target_acc": 60,
+    "target_time": 30,
+    "score": 0.5,
+    "source": "常识政治35题15分钟"
+  },
+  "时事政治": {
+    "target_acc": 60,
+    "target_time": 30,
+    "score": 0.5,
+    "source": "常识政治35题15分钟"
+  },
+  "毛中特": {
+    "target_acc": 60,
+    "target_time": 30,
+    "score": 0.5,
+    "source": "常识政治35题15分钟"
+  },
+  "经济常识": {
+    "target_acc": 50,
+    "target_time": 30,
+    "score": 0.5,
+    "source": "粉笔5分钟35题/搜狐30秒"
+  },
+  "法律常识": {
+    "target_acc": 50,
+    "target_time": 30,
+    "score": 0.5,
+    "source": "粉笔5分钟35题/搜狐30秒"
+  },
+  "科技常识": {
+    "target_acc": 50,
+    "target_time": 30,
+    "score": 0.5,
+    "source": "粉笔5分钟35题/搜狐30秒"
+  },
+  "人文常识": {
+    "target_acc": 50,
+    "target_time": 30,
+    "score": 0.5,
+    "source": "粉笔5分钟35题/搜狐30秒"
+  },
+  "地理国情": {
+    "target_acc": 50,
+    "target_time": 30,
+    "score": 0.5,
+    "source": "粉笔5分钟35题/搜狐30秒"
+  },
+  "其他": {
+    "target_acc": 70,
+    "target_time": 60,
+    "score": 0.8,
+    "source": "未细分题兜底"
+  }
+}
