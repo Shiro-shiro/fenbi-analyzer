@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """ 粉笔抓取核心：请求、历史分页、三类筛选、逐场明细、断点续传、榜单计算
    v2.0 审计修复版：统一数据层级、请求状态化、失败清单、未分类明示、
    题量权重（固定：2027行政执法模考各题型出现题数/总题数，设置页可改）、优先级得分、用时口径分离。 """
@@ -111,6 +111,8 @@ class FenbiClient:
         self.stats = defaultdict(int)
         self.slowest = []          # [(秒, path)] 最慢请求，排查超时用
         self.cookie_len = len(str(cookie_header or ''))
+        self.account_id = None     # 由 fetch_account_id() 填入
+        self.account_name = ''
 
     def getj(self, path, retry=2, timeout=25):
         last_state = 'failed'
@@ -195,6 +197,32 @@ class FenbiClient:
         st, d = self.getj(path, retry=retry, timeout=timeout)
         if st == 'login_expired': raise LoginExpired('登录已失效，请重新登录')
         return d if st == 'ok' else None
+
+    def fetch_account_id(self):
+        """ 取当前登录账号的用户ID，用于隔离各账号的缓存目录。
+            取不到就报错停下，不允许退回到"公共缓存目录"，
+            否则多账号数据会混在一起且用户无法察觉。 """
+        url = 'https://login.fenbi.com/api/users/info'
+        try:
+            r = self.session.get(url, headers={'Accept': 'application/json'}, timeout=15)
+        except Exception as e:
+            raise FetchFailed('无法确认登录账号（用户信息接口网络异常：%s），已停止抓取以避免缓存串号。' % e)
+        if r.status_code in (401, 403):
+            raise LoginExpired('登录已失效，请重新登录')
+        if r.status_code != 200:
+            raise FetchFailed('无法确认登录账号（用户信息接口返回 HTTP %d），已停止抓取以避免缓存串号。'
+                              % r.status_code)
+        try:
+            d = r.json()
+        except Exception:
+            raise FetchFailed('无法确认登录账号（用户信息接口返回非 JSON），已停止抓取以避免缓存串号。')
+        data = d.get('data') or d
+        uid = data.get('id') or data.get('userId') or data.get('uid')
+        if not uid:
+            raise LoginExpired('登录已失效，请重新登录（用户信息接口未返回账号ID）')
+        self.account_id = str(uid)
+        self.account_name = data.get('name') or data.get('nickname') or ''
+        return self.account_id
 
     def stats_text(self):
         """ 请求统计摘要（写进日志，供排查网络/风控/接口改版） """
@@ -353,14 +381,28 @@ class Crawler:
         self.log = log or (lambda s: None)
         self.cancel = cancel or threading.Event()
         self.progress = progress or (lambda done, total, msg: None)
-        self.reports_file = os.path.join(cache_dir, 'reports.jsonl')
-        self.sol_file = os.path.join(cache_dir, 'solution.jsonl')
-        self.src_file = os.path.join(cache_dir, 'source.jsonl')
-        self.meta_file = os.path.join(cache_dir, 'meta.json')
-        self.status_file = os.path.join(cache_dir, 'fetch_status.jsonl')
+        self.account_id = None
+        self.account_dir = None
+        # 缓存路径在 run() 里按当前登录账号绑定（见 _use_account_dir），
+        # 避免多账号共用同一批缓存文件而互相污染。
+        self.reports_file = self.sol_file = self.src_file = None
+        self.meta_file = self.status_file = None
         self._skipped_guangxi = 0
         self.incomplete = False
         self.summary = {}
+
+    def _use_account_dir(self, account_id):
+        """ 把缓存目录绑定到 cache_dir/accounts/<账号ID>/。
+            账号ID 由接口返回，不写死在代码里：换账号就换目录，天然隔离。 """
+        self.account_id = str(account_id)
+        self.account_dir = os.path.join(self.cache_dir, 'accounts', self.account_id)
+        os.makedirs(self.account_dir, exist_ok=True)
+        self.reports_file = os.path.join(self.account_dir, 'reports.jsonl')
+        self.sol_file = os.path.join(self.account_dir, 'solution.jsonl')
+        self.src_file = os.path.join(self.account_dir, 'source.jsonl')
+        self.meta_file = os.path.join(self.account_dir, 'meta.json')
+        self.status_file = os.path.join(self.account_dir, 'fetch_status.jsonl')
+        return self.account_dir
 
     def _load_jsonl(self, path):
         d = {}
@@ -389,6 +431,13 @@ class Crawler:
                  % ('/'.join(sorted(kinds)) or '无', '全部' if not days else '最近%d天' % days,
                     exam_tree, force, self.cache_dir))
         self.log('登录态：Cookie 长度 %d 字节' % getattr(client, 'cookie_len', 0))
+        # 先确认当前登录账号，再把缓存目录绑定到该账号下，
+        # 保证多个账号的缓存互不可见（换账号不会读到大号的数据）。
+        uid = client.fetch_account_id()
+        acc_dir = self._use_account_dir(uid)
+        self.log('登录账号：%s（用户ID %s）'
+                 % (getattr(client, 'account_name', '') or '未命名', uid))
+        self.log('账号缓存目录：%s' % acc_dir)
         now = datetime.datetime.now()
         start_ms = None
         if days:
@@ -403,7 +452,7 @@ class Crawler:
             nonlocal hist_incomplete
             hist, _, inc, errs = client.fetch_history(
                 cid, stop_before=start_ms,
-                cache_file=None if start_ms else os.path.join(self.cache_dir, 'history%d.json' % cid))
+                cache_file=None if start_ms else os.path.join(self.account_dir, 'history%d.json' % cid))
             if inc: hist_incomplete = True; self.incomplete = True
             self.log('历史(cat%d) %d 场%s' % (cid, len(hist), '【不完整】' if inc else ''))
             for it in hist: items_all[str(it.get('exerciseId'))] = it
@@ -589,8 +638,8 @@ class Crawler:
                 if not l1:
                     # 未分类：明示并单列，绝不静默丢弃
                     unclassified.append(row)
-        atomic_dump(rows, os.path.join(self.cache_dir, 'rows.jsonl'))
-        atomic_dump(unclassified, os.path.join(self.cache_dir, 'unclassified.jsonl'))
+        atomic_dump(rows, os.path.join(self.account_dir, 'rows.jsonl'))
+        atomic_dump(unclassified, os.path.join(self.account_dir, 'unclassified.jsonl'))
         # 字段缺口统计：排查"为什么这一列是空的"
         miss_time = sum(1 for r in rows if r.get('单题用时(秒)') is None)
         miss_ratio = sum(1 for r in rows if r.get('全站正确率%') is None)
@@ -612,9 +661,11 @@ class Crawler:
             'meta_missing': len(meta_missing),
             'status_counts': dict(status_counts), 'failures': failures,
             'exam_tree': exam_tree, 'days': days,
+            'account_id': self.account_id, 'account_name': getattr(self.client, 'account_name', ''),
+            'cache_dir': self.account_dir,
             'elapsed_sec': round(time.time() - t_start, 1),
         }
-        atomic_dump(self.summary, os.path.join(self.cache_dir, 'fetch_summary.json'))
+        atomic_dump(self.summary, os.path.join(self.account_dir, 'fetch_summary.json'))
         extra = ('（广西模式：跳过%d条国考独有分类题）' % self._skipped_guangxi) \
             if exam_tree == 'guangxi' else ''
         self.log('完成，共 %d 条做题记录，其中未分类 %d 条（已单列明示）%s'
